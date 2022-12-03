@@ -5,19 +5,65 @@
 #+STARTUP: show2levels
 #+MACRO: more @@html:<!-- more -->@@
 
+* Intro
+#+begin_quote
+qutebrowser is a keyboard-focused browser with a minimal GUI. It’s based on Python and Qt and free software, licensed under the GPL.
+#+end_quote
+
+It's said "cute browser", because it's actually cute, yes, but mostly because that's how Qt itself is pronounced. Go on and enjoy the cuteness.
+
+Wait, but isn't Python /ToO sLoW/ for a browser?
+
+No.
+
+* Globals
 [[https://www.qutebrowser.org/doc/help/configuring.html][From the docs]]:
 
 #+begin_quote
 For more powerful configuration possibilities, you can create a =config.py= file. Since it’s a Python file, you have much more flexibility for configuration. Note that qutebrowser will never touch this file - this means you’ll be responsible for updating it when upgrading to a newer qutebrowser version.
 #+end_quote
 
+Going further in this literate configuration, I will cite the docs a lot more.
+
 #+begin_quote
-Two global objects are pre-defined when running config.py: c and config.
+Two global objects are pre-defined when running =config.py=: c and config.
 #+end_quote
 
-So, let's start from there.
+So, let's start from them:
 
 #+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
 config = config  # type: ConfigAPI
 c = c  # type: ConfigContainer
+#+end_src
+
+This isn't enough, because we must tell qutebrowser if we want to load autoconfig or not. If we forgot this, qutebrowser will throw this error:
+
+#+begin_quote
+autoconfig loading not specified: Your config.py should call either `config.load_autoconfig()` (to load settings configured via the GUI) or `config.load_autoconfig(False)` (to not do so)
+#+end_quote
+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+config.load_autoconfig()
+#+end_src
+
+#+begin_quote
+See the [[https://www.qutebrowser.org/doc/help/settings.html][settings help page]] for all available settings.
+#+end_quote
+
+* Binding keys
+
+#+begin_quote
+While it’s possible to change the =bindings.commands= setting to customize the keyboard shortcuts, it’s preferred to use the =config.bind= command. Doing so ensures the commands are valid and normalizes different expressions which map to the same key.
+#+end_quote
+
+First of all, I want an emacs-like binding to launch commands.
+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+config.bind('<Alt-x>', 'set-cmd-text :')
+#+end_src
+
+Why using an emacs-like binding with a vi-like configuration, you might say. It's a good question, but the answer is really simple: I'm an Evil Emacs user and I live on the great Doom Emacs distribution, so I'm used to a (IMO) optimal blending of both the styles with some "space spice" on them. Like Spacemacs, Doom Emacs promotes the use of the space key for launching a lot of commands. I will try to emulate this behaviour in this qutebrowser config too.
+
+* Colorschemes
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
 #+end_src
