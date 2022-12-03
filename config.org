@@ -111,7 +111,39 @@ First of all, I want an emacs-like binding to launch commands.
 config.bind('<Alt-x>', 'set-cmd-text :')
 #+end_src
 
-Why using an emacs-like binding with a vi-like configuration, you might say. It's a good question, but the answer is really simple: I'm an Evil Emacs user and I live on the great Doom Emacs distribution, so I'm used to a (IMO) optimal blending of both the styles with some "space spice" on them. Like Spacemacs, Doom Emacs promotes the use of the space key for launching a lot of commands. I will try to emulate this behaviour in this qutebrowser config too.
+Why using an emacs-like binding with a vi-like configuration, you might say. It's a good question, but the answer is really simple: I'm an Evil Emacs user and I live on the great Doom Emacs distribution, so I'm used to a (IMO) optimal blending of both the styles with some "space spice" on them. Like Spacemacs, Doom Emacs promotes the use of the space key for launching a lot of commands. I wish I could try to emulate this behaviour in this qutebrowser config too.
+
+This isn't easy as I hoped, because the leading key isn't really something qutebrowser expects.
+The keybindings aren't thought to be sequential, like they are on Spacemacs.
+
+#+begin_quote
+[[https://develop.spacemacs.org/doc/BEGINNERS_TUTORIAL.html][The power of Spacemacs lies in its efficient key bindings.]]
+
+[...]
+
+The modifier keys can be used either in a sequence or as key chords by pressing two keys at the same time. =SPC 1= is notation for a key sequence and means pressing =Space= first and pressing =1= after it.
+
+[...]
+
+Because the spacebar is the most accessible key on the keyboard and is pressed by the strongest fingers (the thumbs), it is a natural choice for launching commands. You can think of it as the start menu of Spacemacs.
+#+end_quote
+
+I don't expect having a menu popping up when I press =Space= like in Spacemacs or Doom Emacs: just being able to launch my usual sequences would be enough.
+
+#+begin_quote
+To bind keys without modifiers, specify a key chain to bind as a string. Key chains starting with a comma are ideal for custom bindings, as the comma key will never be used in a default keybinding.
+#+end_quote
+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+# Selection toggle is already taken by `v`, so I can free the spacebar
+config.unbind('<Space>', mode="caret")
+
+# Opening new pages like I open new files.
+# config.bind('<Space>', 'set-cmd-text :')
+#+end_src
+
+Sadly, it looks like I should create a new dedicated mode to achieve this.
+Maybe in the future.
 
 * Colors
 
@@ -440,6 +472,9 @@ base0E = "#bb9af7"
 base0F = "#bb9af7"
 #+end_src
 
+Potential improvements:
+- The standard green color doesn't look nice enough while in caret mode; something (the bg or the fg) should be changed.
+
 ** City lights (WIP)
 This could be easily converted to my present Doom Emacs theme, =doom-city-lights= (a theme inspired by Atom City Lights).
 
@@ -518,3 +553,43 @@ I should generate a palette image for this scheme too. Will do that whenever the
 
 ** TODO Light theme
 A light theme would be useful too, but it's not a priority, since this has impact only on small stuff, not on the actual buffer/tab with the text.
+* Killing cookie banners
+Using this Rust userscript made by [[https://github.com/Schmiddiii][Schmiddiiii]].
+As he say in [[https://www.reddit.com/r/qutebrowser/comments/mnptey/comment/gwrtipp/?utm_source=share&utm_medium=web2x&context=3][this Reddit thread]], this userscript
+
+#+begin_quote
+has to be called every time you want to block a banner (I dont know if it is possible to call the script when changing the website). The script also aims to reject all cookies instead of hiding the banner, as just hiding it will bring it up again when reloading. *I recommend setting up a key binding.*
+#+end_quote
+
+We'll think later about the keybinding; install it first:
+- Git clone [[git@github.com:Schmiddiii/qute-cookie-block.git][this repo]];
+- Execute the =make.sh= in the directory;
+- Done!
+
+This is a nice example because of the implementations itself. Extending qutebrowser functionalities in Rust is interesting for a lot of reasons.
+Whatever, now it's time to define the keybinding:
+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+config.bind('ek', ':spawn --userscript qute-cookie-block')
+#+end_src
+
+A softer alternative was presented by LordOfTheAssClowns [[https://www.reddit.com/r/qutebrowser/comments/mnptey/comment/gu4m9ht/?utm_source=share&utm_medium=web2x&context=3][on the same thread]]:
+
+# :tangle ~/.config/qutebrowser/config.py
+#+begin_src python :noweb no-export
+config.bind('ek', 'jseval (function () { '+
+'  var i, elements = document.querySelectorAll("body *");'+
+''+
+'  for (i = 0; i < elements.length; i++) {'+
+'    var pos = getComputedStyle(elements[i]).position;'+
+'    if (pos === "fixed" || pos == "sticky") {'+
+'      elements[i].parentNode.removeChild(elements[i]);'+
+'    }'+
+'  }'+
+'})();');
+#+end_src
+
+/(Watch out! This block isn't tangled)/
+
+This evaluate this javascript function to shut off floating thingies sticked to your viewport.
+Less sofisticated, but looks effective enough.
