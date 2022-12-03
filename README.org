@@ -1,0 +1,14 @@
+#+title: qutebrowser configuration
+#+author: Giovanni Crisalfi
+
+The configuration lives inside a single file, the =config.org= file.
+You can easily tangle it in org-mode with =C-c C-v t=.
+
+** Donate
+Did you find something interesting in my dots?
+Why don't you help me keeping myself awake buying me a coffee?
+
+[[https://ko-fi.com/V7V425BFU][https://ko-fi.com/img/githubbutton_sm.svg]]
+
+** License
+Open sourced under the [[./LICENSE][MIT license]].

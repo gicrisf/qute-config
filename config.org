@@ -1,0 +1,10 @@
+#+title: qutebrowser configuration
+#+author: Giovanni Crisalfi
+#+hugo_base_dir: ~/zwitterio-it/
+#+hugo_section: qute-config
+#+STARTUP: show2levels
+#+MACRO: more @@html:<!-- more -->@@
+
+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+#+end_src
