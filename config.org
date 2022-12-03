@@ -4,7 +4,7 @@
 #+hugo_base_dir: ~/zwitterio-it/
 #+hugo_section: software/qute-config
 #+export_file_name: index.en.md
-#+hugo_tags: vim
+#+hugo_tags: vim qt python
 #+hugo_categories: software
 #+STARTUP: show2levels
 #+MACRO: more @@html:<!-- more -->@@
@@ -139,16 +139,31 @@ I don't expect having a menu popping up when I press =Space= like in Spacemacs o
 To bind keys without modifiers, specify a key chain to bind as a string. Key chains starting with a comma are ideal for custom bindings, as the comma key will never be used in a default keybinding.
 #+end_quote
 
+Reading throught the docs, I found out that in the language of qutebrowser, sequences are called *Keychains*.
+When a key is linked to more keychains, qutebrowser shows the so called "keyhint", which is a little cheatsheet on the side of your screen.
+Well, if keychains are possible with the letter "g" or "k", why shouldn't be possible with "Space", right?
+Not exactly, because "Space" is a modifier, just like "Alt" or "Ctrl", so it's not that easy.
+Florian Bruhin, aka The-Compiler, maintains the project and talked about this problem in [[https://github.com/qutebrowser/qutebrowser/issues/319][this GitHub issue]] (discovered through [[https://www.reddit.com/r/qutebrowser/comments/6gvh7e/keychains_with_modifiers/][this reddit post]]).
+Luckily for me, the problem was solved with a [[https://github.com/qutebrowser/qutebrowser/pull/3647][proper key handling refactoring of 2018]]. Thanks, Florian, this is really appreciated.
+So, chit-chats aside, how do we set a keychain/sequence with the space modifier? Here it's the way:
+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+# Opening new pages like I open new files.
+config.bind('<Space>ff', 'set-cmd-text -s :open')
+#+end_src
+
+#+begin_quote
+> *Watch out!*
+
+Keychains are made by writing the keys all linked together, without spaces.
+#+end_quote
+
+To be extra careful, we can unbind the "Space" key from its use in caret mode.
+
 #+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
 # Selection toggle is already taken by `v`, so I can free the spacebar
 config.unbind('<Space>', mode="caret")
-
-# Opening new pages like I open new files.
-# config.bind('<Space>', 'set-cmd-text :')
 #+end_src
-
-Sadly, it looks like I should create a new dedicated mode to achieve this.
-Maybe in the future.
 
 * Colors
 
@@ -570,20 +585,22 @@ has to be called every time you want to block a banner (I dont know if it is pos
 We'll think later about the keybinding; install it first:
 - Git clone [[https://github.com/Schmiddiii/qute-cookie-block/][this repo]];
 - Execute the =make.sh= in the directory;
+- Import a blocklist (compatible with ublock-origin) as =~/.local/qutebrowser/cookie-blockers/blocklist.txt=;
 - Done!
 
 This is a nice example because of the implementations itself. Extending qutebrowser functionalities in Rust is interesting for a lot of reasons.
 Whatever, now it's time to define the keybinding:
 
 #+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
-config.bind('ek', ':spawn --userscript qute-cookie-block')
+# scb: spawn cookie block
+config.bind('scb', ':spawn --userscript qute-cookie-block')
 #+end_src
 
 A softer alternative was presented by LordOfTheAssClowns [[https://www.reddit.com/r/qutebrowser/comments/mnptey/comment/gu4m9ht/?utm_source=share&utm_medium=web2x&context=3][on the same thread]]:
 
-# :tangle ~/.config/qutebrowser/config.py
-#+begin_src python :noweb no-export
-config.bind('ek', 'jseval (function () { '+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+# kse: kill sticky elements
+config.bind('kse', 'jseval (function () { '+
 '  var i, elements = document.querySelectorAll("body *");'+
 ''+
 '  for (i = 0; i < elements.length; i++) {'+
@@ -599,3 +616,6 @@ config.bind('ek', 'jseval (function () { '+
 
 This evaluate this javascript function to shut off floating thingies sticked to your viewport.
 Less sofisticated, but looks effective enough.
+
+Potential improvements:
+- Most pages block scrolling while showing the banner. This problem must be addressed (simply by tweaking the css);
