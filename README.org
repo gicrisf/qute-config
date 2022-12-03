@@ -2,6 +2,7 @@
 #+author: Giovanni Crisalfi
 
 The configuration lives inside a single file, the =config.org= file.
+
 You can easily tangle it in org-mode with =C-c C-v t=.
 
 ** Donate

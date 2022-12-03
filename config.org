@@ -5,6 +5,19 @@
 #+STARTUP: show2levels
 #+MACRO: more @@html:<!-- more -->@@
 
+[[https://www.qutebrowser.org/doc/help/configuring.html][From the docs]]:
+
+#+begin_quote
+For more powerful configuration possibilities, you can create a =config.py= file. Since it’s a Python file, you have much more flexibility for configuration. Note that qutebrowser will never touch this file - this means you’ll be responsible for updating it when upgrading to a newer qutebrowser version.
+#+end_quote
+
+#+begin_quote
+Two global objects are pre-defined when running config.py: c and config.
+#+end_quote
+
+So, let's start from there.
 
 #+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+config = config  # type: ConfigAPI
+c = c  # type: ConfigContainer
 #+end_src
