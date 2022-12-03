@@ -1,14 +1,19 @@
 #+title: qutebrowser configuration
 #+author: Giovanni Crisalfi
+#+date: 2022-12-03 sab 22:02
 #+hugo_base_dir: ~/zwitterio-it/
-#+hugo_section: qute-config
+#+hugo_section: software/qute-config
+#+export_file_name: index.en.md
+#+hugo_tags: vim
+#+hugo_categories: software
 #+STARTUP: show2levels
 #+MACRO: more @@html:<!-- more -->@@
 
-* Intro
 #+begin_quote
 qutebrowser is a keyboard-focused browser with a minimal GUI. It’s based on Python and Qt and free software, licensed under the GPL.
 #+end_quote
+
+{{{more}}}
 
 It's said "cute browser", because it's actually cute, yes, but mostly because that's how Qt itself is pronounced. Go on and enjoy the cuteness.
 
@@ -91,7 +96,7 @@ config.set('content.cookies.accept', 'no-3rdparty', 'chrome-devtools://*')
 #+end_src
 
 * Dark mode
-Basically inverts color pages. I don't tangle this anymore, because it's too annoying.
+Basically, this inverts color pages. I don't tangle this anymore, because it's too annoying.
 
 # :tangle ~/.config/qutebrowser/config.py
 #+begin_src python :noweb no-export
@@ -480,7 +485,7 @@ This could be easily converted to my present Doom Emacs theme, =doom-city-lights
 
 [[https://github.com/SahilKang/emacs-doom-themes/blob/master/themes/doom-city-lights-theme.el][Directly from the source]], we read:
 
-#+begin_src emacs-lisp
+#+begin_src lisp
 ;; name        default   256       16
   ((bg         '("#1D252C" nil       nil            ))
    (bg-alt     '("#181E24" nil       nil            ))
@@ -553,6 +558,7 @@ I should generate a palette image for this scheme too. Will do that whenever the
 
 ** TODO Light theme
 A light theme would be useful too, but it's not a priority, since this has impact only on small stuff, not on the actual buffer/tab with the text.
+
 * Killing cookie banners
 Using this Rust userscript made by [[https://github.com/Schmiddiii][Schmiddiiii]].
 As he say in [[https://www.reddit.com/r/qutebrowser/comments/mnptey/comment/gwrtipp/?utm_source=share&utm_medium=web2x&context=3][this Reddit thread]], this userscript
@@ -562,7 +568,7 @@ has to be called every time you want to block a banner (I dont know if it is pos
 #+end_quote
 
 We'll think later about the keybinding; install it first:
-- Git clone [[git@github.com:Schmiddiii/qute-cookie-block.git][this repo]];
+- Git clone [[https://github.com/Schmiddiii/qute-cookie-block/][this repo]];
 - Execute the =make.sh= in the directory;
 - Done!
 
