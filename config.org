@@ -50,6 +50,14 @@ config.load_autoconfig(False)
 #+begin_quote
 See the [[https://www.qutebrowser.org/doc/help/settings.html][settings help page]] for all available settings.
 #+end_quote
+* Fonts
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+# Default font families to use.
+c.fonts.default_family = "Noto Sans Mono"
+
+# Default font size to use.
+# c.fonts.default_size = "11pt"
+#+end_src
 
 * Cookies
 #+begin_quote
