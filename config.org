@@ -177,6 +177,7 @@ config.unbind('<Space>', mode="caret")
 
 Other space-keychains from here.
 
+*** History and bookmarks
 #+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
 # Go back in the history of the current tab.
 config.bind('<Space>bk', 'back')
@@ -189,15 +190,54 @@ config.bind('<Space><Return>', 'bookmark-list --jump')
 # Show browsing history
 config.unbind('Sh')
 config.bind('<Space>h', 'history')
+#+end_src
 
+*** Settings
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
 # Set an option
 config.unbind('Ss')
 config.bind('<Space>ss', 'set')
+#+end_src
 
+*** Macros
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
 # Start or stop recording a macro
 # This isn't really evilish, I just prefer it this way because I happen to press q
 config.unbind('q')
 config.bind('<Space>q', 'macro-record')
+#+end_src
+
+*** Tabs
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+# Duplicate the current tab
+config.unbind('gC')
+# (like buffer clone)
+config.bind('<Space>bc', 'tab-clone')
+
+# Select tab by index or url/title best match
+config.unbind('gt')
+# (like ibuffer)
+config.bind('<Space>bi', 'tab-select')
+
+# Close the current/[count]th tab
+# config.unbind('d')
+# (like kill buffer)
+config.bind('<Space>bk', 'tab-close')
+
+# Switch to the next tab
+config.unbind('J')
+# (like next buffer)
+config.bind('<Space>bn', 'tab-next')
+
+# Switch to the previous tab
+config.unbind('J')
+# (like previous buffer)
+config.bind('<Space>bp', 'tab-next')
+
+# Close all tabs except for the current one
+config.unbind('co')
+# (like kill buried buffers)
+config.bind('<Space>bZ', 'tab-only')
 #+end_src
 
 I'll keep adding Space keychains in this configuration.
@@ -623,7 +663,7 @@ This give a general idea of how the template works, but you can do a lot better 
 #+begin_src python
 base00 = "#1D252C"
 base01 = "#171D22"
-base02 = "#28323B" # lightened bg
+base02 = "#10151C" # darkened bg
 base03 = "#181E24"
 base04 = "#688094"
 base05 = "#A0B3C5"
