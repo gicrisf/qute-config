@@ -123,63 +123,69 @@ config.bind('<Alt-x>', 'set-cmd-text :')
 
 Why using an emacs-like binding with a vi-like configuration, you might say. It's a good question, but the answer is really simple: I'm an Evil Emacs user and I live on the great Doom Emacs distribution, so I'm used to a (IMO) optimal blending of both the styles with some "space spice" on them. Like Spacemacs, Doom Emacs promotes the use of the space key for launching a lot of commands. I wish I could try to emulate this behaviour in this qutebrowser config too.
 
-** The power of Space-sequences
+** Space sequences
 # This isn't easy as I hoped, because the leading key isn't really something qutebrowser expects.
 # The keybindings aren't thought to be sequential, like they are on Spacemacs.
+
+My keybindings turn around *<Space>*.
+
+Since I falled in space-centered key settings when I first installed Spacemacs, I'll let them teach why =<Space>= is so comfortable. From Spacemacs' docs:
 
 #+begin_quote
 [[https://develop.spacemacs.org/doc/BEGINNERS_TUTORIAL.html][The power of Spacemacs lies in its efficient key bindings.]]
 
 [...]
 
-The modifier keys can be used either in a sequence or as key chords by pressing two keys at the same time. =SPC 1= is notation for a key sequence and means pressing =Space= first and pressing =1= after it.
-
-[...]
-
 Because the spacebar is the most accessible key on the keyboard and is pressed by the strongest fingers (the thumbs), it is a natural choice for launching commands. You can think of it as the start menu of Spacemacs.
 #+end_quote
 
-I don't demand having a menu popping up when I press =Space= like in Spacemacs or Doom Emacs: just being able to launch my usual sequences would be enough.
+Of course, I don't demand having =<Space>= as an entry point for a qutebrowser's "start menu": just being able to launch my usual sequences would be enough.
+From qutebrowser docs:
 
 #+begin_quote
-To bind keys without modifiers, specify a key chain to bind as a string. Key chains starting with a comma are ideal for custom bindings, as the comma key will never be used in a default keybinding.
+To bind keys without modifiers, specify a key chain to bind as a string.
 #+end_quote
 
-Reading throught the docs, I found out that in the language of qutebrowser, sequences are called *Keychains*.
+By exploring the docs, I found out that in the language of qutebrowser, *sequences are called /keychains/*.
 When a key is linked to more keychains, qutebrowser shows the so called "keyhint", which is a little cheatsheet on the side of your screen.
-It's not like having a full functional buffer popping up everytime you need it, but it's pretty similar for our purpose!
+It's not like having a full functional buffer popping up everytime you need it like in Spacemacs or Doom Emacs, but it's pretty similar for our purpose!
 
-Well, if keychains are possible with the letter "g" or "k", why shouldn't be possible with "Space", right?
-Not exactly, because "Space" is a modifier, just like "Alt" or "Ctrl", so it's not that easy.
-Florian Bruhin, aka The-Compiler, who is qutebrowser's primary maintainer, talked about this problem in [[https://github.com/qutebrowser/qutebrowser/issues/319][this GitHub issue]] (discovered through [[https://www.reddit.com/r/qutebrowser/comments/6gvh7e/keychains_with_modifiers/][this reddit post]]).
+A typical keychain looks like this one:
+
+#+begin_quote
+=Sq=: bookmark-list
+#+end_quote
+
+*Watch out!*: keychains are made by writing the keys all linked together, without spaces.
+
+If keychains are possible with the letter "g" or "k", why shouldn't be possible with "Space", right?
+Well, not exactly, because "Space" is a modifier, just like "Alt" or "Ctrl", so it could be harder.
+Florian Bruhin, aka The-Compiler, who is qutebrowser's primary maintainer, talked about this topic in [[https://github.com/qutebrowser/qutebrowser/issues/319][this GitHub issue]] (discovered through [[https://www.reddit.com/r/qutebrowser/comments/6gvh7e/keychains_with_modifiers/][this reddit post]]).
 Luckily for me, the problem was solved with a [[https://github.com/qutebrowser/qutebrowser/pull/3647][proper key handling refactoring of 2018]] (thanks, Florian, this is really appreciated).
+Right now, chaining modifiers and letters is /that/ easy.
 
 So, stopping all the chit-chat, how do we set a keychain/sequence with the space modifier?
-Surprisingly, it's pretty simple:
 
 #+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
 # Opening new pages like I open new files.
 config.bind('<Space>ff', 'set-cmd-text -s :open')
 #+end_src
 
-#+begin_quote
-*Watch out!*
+Pretty simple, right?:
 
-Keychains are made by writing the keys all linked together, without spaces.
-#+end_quote
-
-To be extra careful, we unbind the "Space" key from its use in caret mode.
+Since we're going to use =<Space>= a lot, it's better to unbind the =<Space>= key from its use in caret mode. You know, it shouldn't be a problem, but it's better to be careful.
 
 #+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
 # Selection toggle is already taken by `v`, so I can free the spacebar
 config.unbind('<Space>', mode="caret")
 #+end_src
 
-Other space-keychains from here.
+More space-keychains from here on.
 
 *** History and bookmarks
 #+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
 # Go back in the history of the current tab.
+# (like kill buffer, because usually this fall back to the previous buffer)
 config.bind('<Space>bk', 'back')
 
 # Show all bookmarks/quickmarks
@@ -220,9 +226,9 @@ config.unbind('gt')
 config.bind('<Space>bi', 'tab-select')
 
 # Close the current/[count]th tab
-# config.unbind('d')
+config.unbind('d')
 # (like kill buffer)
-config.bind('<Space>bk', 'tab-close')
+config.bind('<Space>bd', 'tab-close')
 
 # Switch to the next tab
 config.unbind('J')
@@ -230,7 +236,7 @@ config.unbind('J')
 config.bind('<Space>bn', 'tab-next')
 
 # Switch to the previous tab
-config.unbind('J')
+config.unbind('K')
 # (like previous buffer)
 config.bind('<Space>bp', 'tab-next')
 
@@ -238,9 +244,19 @@ config.bind('<Space>bp', 'tab-next')
 config.unbind('co')
 # (like kill buried buffers)
 config.bind('<Space>bZ', 'tab-only')
+
+# Pin/unpin the current/[count]th tab
+config.unbind('<Ctrl-p>')
+# (like "buffer pin")
+config.bind('<Space>bp', 'tab-pin')
+
+# Select the tab given as argument/[count]
+config.unbind('T')
+# (like "buffer tabs...")
+config.bind('<Space>t', 'set-cmd-text -sr :tab-focus')
 #+end_src
 
-I'll keep adding Space keychains in this configuration.
+I'll keep adding Space keychains in other section of this file too.
 
 ** Vim-like navigation in command mode
 #+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
@@ -661,27 +677,28 @@ This give a general idea of how the template works, but you can do a lot better 
 
 #+name: colorscheme-city-lights
 #+begin_src python
-base00 = "#1D252C"
-base01 = "#171D22"
-base02 = "#10151C" # darkened bg
-base03 = "#181E24"
-base04 = "#688094"
-base05 = "#A0B3C5"
-base06 = "#728CA0"
-base07 = "#7FA0B7"
+base00 = "#1D252C" # black
+base01 = "#171D22" # darkened black ++
+base02 = "#10151C" # darkened black +++
+base03 = "#41505E" # lightened black + (charcoal)
+base04 = "#56697A" # lightened black +++
+base05 = "#A0B3C5" # (cadet blue crayola)
+base06 = "#728CA0" # (light slate gray)
+base07 = "#5EC4FF" # blue + (maya blue)
 base08 = "#D95468" # red (paradise pink)
 base09 = "#D98E48" # orange (persian orange)
 base0A = "#EBBF83" # yellow (gold crayola)
 base0B = "#8BD49C" # green (celadon)
 base0C = "#008B94" # cyan (dark cyan)
-base0D = "#539AFC" # blue (cornflower blue)
-base0E = "#E27E8D" # magenta (shimmering blush)
-base0F = "#B62D65" # dark magenta (maroon x 11)
+base0D = "#539AFC" # blue ++ (cornflower blue)
+base0E = "#E27E8D" # magenta + (shimmering blush)
+base0F = "#B62D65" # magenta ++ (maroon x 11)
 #+end_src
 
 If the porting goes well as I hope, I will consider writing this in yaml and making a contribution to the tinted-color repository. I should generate a palette image for this scheme too. Will do that whenever I'll feel the scheme as complete.
 
-I have to say it's pretty weird that the standard templates doesn't make use of every color. I don't like this limitation, so I'll do my own template.
+I have to say it's pretty weird that the standard templates doesn't make use of every color. I don't like this limitation, so I'll realize my own template in the next section.
+Yeah, this should be probably written as a specific package.
 
 ** My base16 template
 
@@ -692,7 +709,7 @@ I will try to make this new template compatible with the previous one.
 | base00 | main background                                               |
 | base01 | alt background  (odd rows, disabled items in context menu...) |
 | base02 | background for selected items                                 |
-| base03 | alt background 2 (bg for pinned unselected even tabs)         |
+| base03 | alt background 2 (bg for selected tabs)                       |
 | base04 | foreground color of disabled items                            |
 | base05 | main foreground color                                         |
 | base06 | fg for unselected tabs                                        |
@@ -921,11 +938,11 @@ c.colors.statusbar.url.hover.fg = base05
 
 # Foreground color of the URL in the statusbar on successful load
 # (http).
-c.colors.statusbar.url.success.http.fg = base0C
+c.colors.statusbar.url.success.http.fg = base05
 
 # Foreground color of the URL in the statusbar on successful load
 # (https).
-c.colors.statusbar.url.success.https.fg = base0B
+c.colors.statusbar.url.success.https.fg = base05
 
 # Foreground color of the URL in the statusbar when there's a warning.
 c.colors.statusbar.url.warn.fg = base0E
@@ -946,34 +963,34 @@ c.colors.tabs.indicator.error = base08
 c.colors.tabs.odd.fg = base05
 
 # Background color of unselected odd tabs.
-c.colors.tabs.odd.bg = base01
+c.colors.tabs.odd.bg = base02
 
 # Foreground color of unselected even tabs.
 c.colors.tabs.even.fg = base05
 
 # Background color of unselected even tabs.
-c.colors.tabs.even.bg = base00
+c.colors.tabs.even.bg = base02
 
 # Background color of pinned unselected even tabs.
-c.colors.tabs.pinned.even.bg = base03
+c.colors.tabs.pinned.even.bg = base02
 
 # Foreground color of pinned unselected even tabs.
-c.colors.tabs.pinned.even.fg = base0C
+c.colors.tabs.pinned.even.fg = base05
 
 # Background color of pinned unselected odd tabs.
-c.colors.tabs.pinned.odd.bg = base0E
+c.colors.tabs.pinned.odd.bg = base02
 
 # Foreground color of pinned unselected odd tabs.
-c.colors.tabs.pinned.odd.fg = base07
+c.colors.tabs.pinned.odd.fg = base05
 
 # Background color of pinned selected even tabs.
-c.colors.tabs.pinned.selected.even.bg = base00
+c.colors.tabs.pinned.selected.even.bg = base03
 
 # Foreground color of pinned selected even tabs.
 c.colors.tabs.pinned.selected.even.fg = base05
 
 # Background color of pinned selected odd tabs.
-c.colors.tabs.pinned.selected.odd.bg = base00
+c.colors.tabs.pinned.selected.odd.bg = base03
 
 # Foreground color of pinned selected odd tabs.
 c.colors.tabs.pinned.selected.odd.fg = base05
@@ -982,13 +999,13 @@ c.colors.tabs.pinned.selected.odd.fg = base05
 c.colors.tabs.selected.odd.fg = base05
 
 # Background color of selected odd tabs.
-c.colors.tabs.selected.odd.bg = base01
+c.colors.tabs.selected.odd.bg = base03
 
 # Foreground color of selected even tabs.
 c.colors.tabs.selected.even.fg = base05
 
 # Background color of selected even tabs.
-c.colors.tabs.selected.even.bg = base01
+c.colors.tabs.selected.even.bg = base03
 
 # Background color for webpages if unset (or empty to use the theme's
 # color).
@@ -1050,3 +1067,54 @@ Potential improvements:
 # * TODO Containers
 # * TODO Save as ePub
 # * TODO List of tabs
+* Tabs
+** Hide single tab
+Don't show the tabs bar, if there's a single tab opened.
+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+c.tabs.show = "multiple"
+#+end_src
+
+* Aliases
+
+Close the tab with =:q=.
+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+# use `:q` command for killing the tab, not the window
+c.aliases['q'] = "tab-close"
+#+end_src
+
+You can always close the window with the standard =:qa= (quit all) command.
+
+* Statusbar
+** Widgets
+
+#+begin_quote
+List of widgets displayed in the statusbar.
+
+Type: [[https://qutebrowser.org/doc/help/settings.html#types][List of StatusbarWidget]]
+
+Valid values:
+- url: Current page URL.
+- scroll: Percentage of the current page position like 10%.
+- scroll_raw: Raw percentage of the current page position like 10.
+- history: Display an arrow when possible to go back/forward in history.
+- search_match: A match count when searching, e.g. Match [2/10].
+- tabs: Current active tab, e.g. 2.
+- keypress: Display pressed keys when composing a vi command.
+- progress: Progress bar for the current page loading.
+- text:foo: Display the static text after the colon, foo in the example.
+- clock: Display current time. The format can be changed by adding a format string via clock:.... For supported format strings, see the Python datetime documentation.
+
+Default:
+- keypress
+- search_match
+- url
+- scroll
+- history
+- tabs
+- progress
+#+end_quote
+
+I appreciate the standard.
+Doing nothing here.
