@@ -15,11 +15,13 @@ qutebrowser is a keyboard-focused browser with a minimal GUI. It’s based on Py
 
 {{{more}}}
 
-It's said "cute browser", because it's actually cute, yes, but mostly because that's how Qt itself is pronounced. Go on and enjoy the cuteness.
+It's said "cute browser", because it's actually cute, yes, but mostly because that's how Qt itself is pronounced. *Stay and enjoy the quteness*.
 
+#+begin_quote
 Wait, but isn't Python /ToO sLoW/ for a browser?
+#+end_quote
 
-No.
+*No.*
 
 * Globals
 [[https://www.qutebrowser.org/doc/help/configuring.html][From the docs]]:
@@ -55,6 +57,7 @@ config.load_autoconfig(False)
 #+begin_quote
 See the [[https://www.qutebrowser.org/doc/help/settings.html][settings help page]] for all available settings.
 #+end_quote
+
 * Fonts
 #+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
 # Default font families to use.
@@ -104,7 +107,7 @@ config.set("colors.webpage.darkmode.enabled", True)
 #+end_src
 
 * Keybindings
-
+** Emacs-y launcher (a basic example)
 #+begin_quote
 While it’s possible to change the =bindings.commands= setting to customize the keyboard shortcuts, it’s preferred to use the =config.bind= command. Doing so ensures the commands are valid and normalizes different expressions which map to the same key.
 #+end_quote
@@ -118,8 +121,9 @@ config.bind('<Alt-x>', 'set-cmd-text :')
 
 Why using an emacs-like binding with a vi-like configuration, you might say. It's a good question, but the answer is really simple: I'm an Evil Emacs user and I live on the great Doom Emacs distribution, so I'm used to a (IMO) optimal blending of both the styles with some "space spice" on them. Like Spacemacs, Doom Emacs promotes the use of the space key for launching a lot of commands. I wish I could try to emulate this behaviour in this qutebrowser config too.
 
-This isn't easy as I hoped, because the leading key isn't really something qutebrowser expects.
-The keybindings aren't thought to be sequential, like they are on Spacemacs.
+** The power of Space-sequences
+# This isn't easy as I hoped, because the leading key isn't really something qutebrowser expects.
+# The keybindings aren't thought to be sequential, like they are on Spacemacs.
 
 #+begin_quote
 [[https://develop.spacemacs.org/doc/BEGINNERS_TUTORIAL.html][The power of Spacemacs lies in its efficient key bindings.]]
@@ -141,11 +145,15 @@ To bind keys without modifiers, specify a key chain to bind as a string. Key cha
 
 Reading throught the docs, I found out that in the language of qutebrowser, sequences are called *Keychains*.
 When a key is linked to more keychains, qutebrowser shows the so called "keyhint", which is a little cheatsheet on the side of your screen.
+It's not like having a full functional buffer popping up everytime you need it, but it's pretty similar for our purpose!
+
 Well, if keychains are possible with the letter "g" or "k", why shouldn't be possible with "Space", right?
 Not exactly, because "Space" is a modifier, just like "Alt" or "Ctrl", so it's not that easy.
-Florian Bruhin, aka The-Compiler, maintains the project and talked about this problem in [[https://github.com/qutebrowser/qutebrowser/issues/319][this GitHub issue]] (discovered through [[https://www.reddit.com/r/qutebrowser/comments/6gvh7e/keychains_with_modifiers/][this reddit post]]).
-Luckily for me, the problem was solved with a [[https://github.com/qutebrowser/qutebrowser/pull/3647][proper key handling refactoring of 2018]]. Thanks, Florian, this is really appreciated.
-So, chit-chats aside, how do we set a keychain/sequence with the space modifier? Here it's the way:
+Florian Bruhin, aka The-Compiler, who is qutebrowser's primary maintainer, talked about this problem in [[https://github.com/qutebrowser/qutebrowser/issues/319][this GitHub issue]] (discovered through [[https://www.reddit.com/r/qutebrowser/comments/6gvh7e/keychains_with_modifiers/][this reddit post]]).
+Luckily for me, the problem was solved with a [[https://github.com/qutebrowser/qutebrowser/pull/3647][proper key handling refactoring of 2018]] (thanks, Florian, this is really appreciated).
+
+So, stopping all the chit-chat, how do we set a keychain/sequence with the space modifier?
+Surprisingly, it's pretty simple:
 
 #+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
 # Opening new pages like I open new files.
@@ -153,7 +161,7 @@ config.bind('<Space>ff', 'set-cmd-text -s :open')
 #+end_src
 
 #+begin_quote
-> *Watch out!*
+*Watch out!*
 
 Keychains are made by writing the keys all linked together, without spaces.
 #+end_quote
@@ -164,6 +172,18 @@ To be extra careful, we can unbind the "Space" key from its use in caret mode.
 # Selection toggle is already taken by `v`, so I can free the spacebar
 config.unbind('<Space>', mode="caret")
 #+end_src
+
+** Paste like in a terminal emulator :noexport:
+I'm used to paste strings with =<Ctrl-Shift> v=, so let's teach that to qutebrowser.
+
+# :tangle ~/.config/qutebrowser/config.py
+#+begin_src python :noweb no-export
+config.bind('<Ctrl-Shift> v', 'fake-key -g <Ctrl-v>')
+#+end_src
+
+This is a system-wide keybinding that qutebrowser inherit from Qt, so we can [[https://www.reddit.com/r/qutebrowser/comments/j2vykm/comment/g7ba3bs/?utm_source=share&utm_medium=web2x&context=3][emulate the behaviour]] by simulating actual =<Ctrl-v>=.
+
+/*Not tangled, it doesn't work*/
 
 * Colors
 
@@ -619,3 +639,10 @@ Less sofisticated, but looks effective enough.
 
 Potential improvements:
 - Most pages block scrolling while showing the banner. This problem must be addressed (simply by tweaking the css);
+
+# * TODO Password manager
+# * TODO Adblocker
+# * TODO Kaomoji
+# * TODO Containers
+# * TODO Save as ePub
+# * TODO List of tabs
