@@ -99,12 +99,14 @@ config.set('content.cookies.accept', 'no-3rdparty', 'chrome-devtools://*')
 #+end_src
 
 * Dark mode
-Basically, this inverts color pages. I don't tangle this anymore, because it's too annoying.
+Basically, this inverts color pages.
 
 # :tangle ~/.config/qutebrowser/config.py
 #+begin_src python :noweb no-export
 config.set("colors.webpage.darkmode.enabled", True)
 #+end_src
+
+I don't tangle this anymore, because I think it's too annoying.
 
 * Keybindings
 ** Emacs-y launcher (a basic example)
@@ -137,7 +139,7 @@ The modifier keys can be used either in a sequence or as key chords by pressing 
 Because the spacebar is the most accessible key on the keyboard and is pressed by the strongest fingers (the thumbs), it is a natural choice for launching commands. You can think of it as the start menu of Spacemacs.
 #+end_quote
 
-I don't expect having a menu popping up when I press =Space= like in Spacemacs or Doom Emacs: just being able to launch my usual sequences would be enough.
+I don't demand having a menu popping up when I press =Space= like in Spacemacs or Doom Emacs: just being able to launch my usual sequences would be enough.
 
 #+begin_quote
 To bind keys without modifiers, specify a key chain to bind as a string. Key chains starting with a comma are ideal for custom bindings, as the comma key will never be used in a default keybinding.
@@ -166,12 +168,34 @@ config.bind('<Space>ff', 'set-cmd-text -s :open')
 Keychains are made by writing the keys all linked together, without spaces.
 #+end_quote
 
-To be extra careful, we can unbind the "Space" key from its use in caret mode.
+To be extra careful, we unbind the "Space" key from its use in caret mode.
 
 #+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
 # Selection toggle is already taken by `v`, so I can free the spacebar
 config.unbind('<Space>', mode="caret")
 #+end_src
+
+Other space-keychains from here.
+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+# Go back in the history of the current tab.
+config.bind('<Space>bk', 'back')
+
+# Show all bookmarks/quickmarks
+config.unbind('Sb') # --jump
+config.unbind('Sq') # no jump; what the hell is this jump flag anyway?
+config.bind('<Space><Return>', 'bookmark-list --jump')
+
+# Show browsing history
+config.unbind('Sh')
+config.bind('<Space>h', 'history')
+
+# Set an option
+config.unbind('Ss')
+config.bind('<Space>ss', 'set')
+#+end_src
+
+I'll keep adding Space keychains in this configuration.
 
 ** Paste like in a terminal emulator :noexport:
 I'm used to paste strings with =<Ctrl-Shift> v=, so let's teach that to qutebrowser.
@@ -613,7 +637,7 @@ Whatever, now it's time to define the keybinding:
 
 #+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
 # scb: spawn cookie block
-config.bind('scb', ':spawn --userscript qute-cookie-block')
+config.bind('<Space>cb', ':spawn --userscript qute-cookie-block')
 #+end_src
 
 A softer alternative was presented by LordOfTheAssClowns [[https://www.reddit.com/r/qutebrowser/comments/mnptey/comment/gu4m9ht/?utm_source=share&utm_medium=web2x&context=3][on the same thread]]:
