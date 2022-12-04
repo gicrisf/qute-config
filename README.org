@@ -1,9 +1,10 @@
 #+title: qutebrowser configuration
 #+author: Giovanni Crisalfi
 
-The configuration lives inside a single file, the =config.org= file.
+A literate qutebrowser configuration made by an Evil Emacs user for space-centered workflows.
 
-You can easily tangle it in org-mode with =C-c C-v t=.
+The configuration lives inside a single file, the =config.org= file.
+Since it's written in org-mode, you can easily tangle with =C-c C-v t= to install everything in the right places.
 
 ** Donate
 Did you find something interesting in my dots?
