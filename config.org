@@ -199,10 +199,13 @@ config.bind('<Space>h', 'history')
 #+end_src
 
 *** Settings
+I never access settings from inside qutebrowser, so we can disable this keychain.
+However, it would be easy to launch as command.
+
 #+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
 # Set an option
 config.unbind('Ss')
-config.bind('<Space>ss', 'set')
+# config.bind('<Space>ss', 'set')
 #+end_src
 
 *** Macros
@@ -275,6 +278,22 @@ config.bind('<Ctrl-Shift> v', 'fake-key -g <Ctrl-v>')
 This is a system-wide keybinding that qutebrowser inherit from Qt, so we can [[https://www.reddit.com/r/qutebrowser/comments/j2vykm/comment/g7ba3bs/?utm_source=share&utm_medium=web2x&context=3][emulate the behaviour]] by simulating actual =<Ctrl-v>=.
 
 /*Not tangled, it doesn't work*/
+** Sessions
+For qutebrowser, sessions are just lists of URL to be opened in new tabs.
+The relevant commands are:
+- =session-delete=
+- =session-load=
+- =session-save=
+
+Every command request an argument, the name of the session.
+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+config.bind('<Space>ss', 'set-cmd-text -s :session-save')
+config.bind('<Space>sl', 'set-cmd-text -s :session-load')
+config.bind('<Space>sd', 'set-cmd-text -s :session-delete')
+#+end_src
+
+This way, sessions are easier to inspect, because by using =set-cmd-text= we evoke the "sessions" prompt.
 
 * Colors
 
@@ -1226,3 +1245,5 @@ I could make an userscript to download as epub/mobi.
 # Readability JS in common lisp could be useful ?
 
 # * TODO Kaomoji
+# * TODO Music management
+# I like listening to lofi youtube playlists and I get frustrated when they go offline, so I would like to download my favorite ones while I listen to them.
