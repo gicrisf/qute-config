@@ -248,7 +248,7 @@ config.bind('<Space>bZ', 'tab-only')
 # Pin/unpin the current/[count]th tab
 config.unbind('<Ctrl-p>')
 # (like "buffer pin")
-config.bind('<Space>bp', 'tab-pin')
+config.bind('<Space>p', 'tab-pin')
 
 # Select the tab given as argument/[count]
 config.unbind('T')
@@ -1062,11 +1062,10 @@ Potential improvements:
 - Most pages block scrolling while showing the banner. This problem must be addressed (simply by tweaking the css);
 
 # * TODO Password manager
-# * TODO Adblocker
 # * TODO Kaomoji
 # * TODO Containers
 # * TODO Save as ePub
-# * TODO List of tabs
+
 * Tabs
 ** Hide single tab
 Don't show the tabs bar, if there's a single tab opened.
@@ -1118,3 +1117,55 @@ Default:
 
 I appreciate the standard.
 Doing nothing here.
+* Minimize fingerprinting
+From [[https://wiki.archlinux.org/title/Qutebrowser][Arch Wiki]]:
+
+#+begin_quote
+Websites may be able to identify you based on combining information on screen size, user-agent, HTTP_ACCEPT headers, and more. See [2] for more information and to test the uniqueness of your browser. Below are a few steps that can be taken to make your qutebrowser installation more "generic".
+#+end_quote
+
+** Set a common user-agent
+
+#+begin_quote
+Several user agents are available as options.
+#+end_quote
+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+c.content.headers.user_agent = "Mozilla/5.0 (Windows NT 10.0; rv:68.0) Gecko/20100101 Firefox/68.0"
+#+end_src
+
+** Set a common HTTP_ACCEPT header
+#+begin_quote
+The following is a common HTTP_ACCEPT header (Firefox default).
+#+end_quote
+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+c.content.headers.accept_language = "en-US,en;q=0.5"
+c.content.headers.custom = {"accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"}
+#+end_src
+
+** Disable reading from canvas
+#+begin_quote
+Note: [[https://github.com/qutebrowser/qutebrowser/issues/2908][Some websites]] depend on canvas reading for content rendering and other functionality. Adding this option may cause them to not work properly.
+#+end_quote
+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+c.content.canvas_reading = False
+#+end_src
+
+** Disable WebGL
+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+c.content.webgl = False
+#+end_src
+
+* Brave Adblocker
+=python-adblock= is a python wrapper around the Brave Rust library. Install it with pacman:
+
+#+begin_src bash
+sudo pacman -S python-adblock
+#+end_src
+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+c.content.blocking.method = "both"
+#+end_src
