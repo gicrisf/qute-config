@@ -123,7 +123,7 @@ config.bind('<Alt-x>', 'set-cmd-text :')
 
 Why using an emacs-like binding with a vi-like configuration, you might say. It's a good question, but the answer is really simple: I'm an Evil Emacs user and I live on the great Doom Emacs distribution, so I'm used to a (IMO) optimal blending of both the styles with some "space spice" on them. Like Spacemacs, Doom Emacs promotes the use of the space key for launching a lot of commands. I wish I could try to emulate this behaviour in this qutebrowser config too.
 
-** Space sequences
+** The power of space sequences
 # This isn't easy as I hoped, because the leading key isn't really something qutebrowser expects.
 # The keybindings aren't thought to be sequential, like they are on Spacemacs.
 
@@ -241,7 +241,7 @@ config.bind('<Space>bn', 'tab-next')
 # Switch to the previous tab
 config.unbind('K')
 # (like previous buffer)
-config.bind('<Space>bp', 'tab-next')
+config.bind('<Space>bp', 'tab-prev')
 
 # Close all tabs except for the current one
 config.unbind('co')
@@ -1239,6 +1239,8 @@ So while I like the simplicity and isolation of using separate browser profiles,
 
 I don't like to say that, but untile qutebrowser doesn't catch up with the Firefox way to manage containers, the best solution could be using Firefox for some stuff and qutebrowser for other stuff.
 I avoid to be to drastic, because I think I should play with profiles, before choosing a definitive workflow.
+* Sharing sessions
+To share my sessions across different machines, I stowed* my =~/.local/share/qutebrowser/sessions/= directory from my Dropbox. I mean I'm using GNU Stow: basically, I'm just symlinking the directory from a cloud. Of course, one could use any cloud (or even git, but I don't like version-controlling such ephemeral data).
 
 * TODO Save as ebook
 I could make an userscript to download as epub/mobi.
