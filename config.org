@@ -1061,11 +1061,6 @@ Less sofisticated, but looks effective enough.
 Potential improvements:
 - Most pages block scrolling while showing the banner. This problem must be addressed (simply by tweaking the css);
 
-# * TODO Password manager
-# * TODO Kaomoji
-# * TODO Containers
-# * TODO Save as ePub
-
 * Tabs
 ** Hide single tab
 Don't show the tabs bar, if there's a single tab opened.
@@ -1169,3 +1164,65 @@ sudo pacman -S python-adblock
 #+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
 c.content.blocking.method = "both"
 #+end_src
+
+* Password manager
+I use [[https://bitwarden.com/][Bitwarden]] as password manager.
+I was thinking about using some kind of wrapper around Bitwarden CLI. See:
+- [[https://github.com/mattydebie/bitwarden-rofi][bitwarden-rofi]]
+- [[https://github.com/Sife-ops/dmenu_bw][dmenu_bw]]
+
+In the meantime, I'm using the Electron app.
+The integration isn't good enough, so I'm not satisfied, but this problem can wait.
+
+* Containers
+I love Multi-Account Containers in Firefox and I'd like to have containers in qutebrowser too.
+Is this possible? Not exactly. There's a [[https://github.com/qutebrowser/qutebrowser/issues/4102][GitHub issue about this topic]].
+
+As Florian Bruhin points out:
+#+begin_quote
+[[https://github.com/s-praveen-kumar][@s-praveen-kumar]] has written an userscript to manage different basedirs in a container-like way - see [[https://github.com/qutebrowser/qutebrowser/discussions/7325][#7325]].
+#+end_quote
+
+So, let's see what [[https://github.com/qutebrowser/qutebrowser/discussions/7325][#7325]] is about:
+
+#+begin_quote
+This allows multiple containers for multiple accounts or to prevent cookie tracking across sites.
+Check it out here: [[https://github.com/s-praveen-kumar/qute-containers][qute-containers]]
+#+end_quote
+
+From the qute-containers readme:
+
+#+begin_quote
+Browser Containers is a feature available as an official extension in Mozilla Firefox. It allows users to have separate 'containers'. All the browser data, cookies and site storage are stored and separated within these containers. Common use cases include having multiple containers to mitigate cookie tracking and using multiple web logins without confusion (Eg: Multiple gmail accounts).
+#+end_quote
+
+I like this idea because I could write a specific container configuration to maintain my container preferences in plain text.
+One could assign an accent color for each container by assigning a specific =config.py=. It would be nice to generate config files from the main one, in order to make the main =config.py= a matrix for the derived container children.
+
+But let's stick to the current solutions before biting off more than we can chew.
+
+#+begin_quote
+The script creates a file with a list of containers in the location specified by =CONTAINER_LIST= variable in the =containers_config= file.
+
+The actual containers are created as directories within the =CONTAINER_BASE= directory.
+
+Containers can be created or deleted manually by editing the =CONTAINER_LIST= file and creating/removing respective directory from =CONTAINER_BASE=. Helper scripts are provided to make this process easier.
+#+end_quote
+
+With this solution, we would run multiple instances of qutebrowser. Therefore, a memory problem could emerge.
+[[https://github.com/qutebrowser/qutebrowser/issues/4102#issuecomment-852182640][Like @markstos said]]:
+
+#+begin_quote
+I regularly have 4 different profiles running and also have near-daily out-of-memory problems on a laptop with 16GB of RAM. When I killall qutebrowser, memory recovers to less than 2GB of usage.
+
+So while I like the simplicity and isolation of using separate browser profiles, it seems there is a memory penalty to pay with some duplicated browser code loaded 4x. If a "Firefox containers" type of solution could result in significant memory savings, that would be welcome!
+#+end_quote
+
+I don't like to say that, but untile qutebrowser doesn't catch up with the Firefox way to manage containers, the best solution could be using Firefox for some stuff and qutebrowser for other stuff.
+I avoid to be to drastic, because I think I should play with profiles, before choosing a definitive workflow.
+
+* TODO Save as ebook
+I could make an userscript to download as epub/mobi.
+# Readability JS in common lisp could be useful ?
+
+# * TODO Kaomoji
