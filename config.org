@@ -98,16 +98,6 @@ Which cookies to accept.
 config.set('content.cookies.accept', 'no-3rdparty', 'chrome-devtools://*')
 #+end_src
 
-* Dark mode
-Basically, this inverts color pages.
-
-# :tangle ~/.config/qutebrowser/config.py
-#+begin_src python :noweb no-export
-config.set("colors.webpage.darkmode.enabled", True)
-#+end_src
-
-I don't tangle this anymore, because I think it's too annoying.
-
 * Keybindings
 ** Emacs-y launcher (a basic example)
 #+begin_quote
@@ -278,6 +268,7 @@ config.bind('<Ctrl-Shift> v', 'fake-key -g <Ctrl-v>')
 This is a system-wide keybinding that qutebrowser inherit from Qt, so we can [[https://www.reddit.com/r/qutebrowser/comments/j2vykm/comment/g7ba3bs/?utm_source=share&utm_medium=web2x&context=3][emulate the behaviour]] by simulating actual =<Ctrl-v>=.
 
 /*Not tangled, it doesn't work*/
+
 ** Sessions
 For qutebrowser, sessions are just lists of URL to be opened in new tabs.
 The relevant commands are:
@@ -294,6 +285,16 @@ config.bind('<Space>sd', 'set-cmd-text -s :session-delete')
 #+end_src
 
 This way, sessions are easier to inspect, because by using =set-cmd-text= we evoke the "sessions" prompt.
+
+* Dark mode
+Basically, this inverts color pages.
+
+# :tangle ~/.config/qutebrowser/config.py
+#+begin_src python :noweb no-export
+config.set("colors.webpage.darkmode.enabled", True)
+#+end_src
+
+I don't tangle this anymore, because I think it's too annoying, *but* it would be nice to bind something similar to a command.
 
 * Colors
 
@@ -1138,6 +1139,8 @@ From [[https://wiki.archlinux.org/title/Qutebrowser][Arch Wiki]]:
 Websites may be able to identify you based on combining information on screen size, user-agent, HTTP_ACCEPT headers, and more. See [2] for more information and to test the uniqueness of your browser. Below are a few steps that can be taken to make your qutebrowser installation more "generic".
 #+end_quote
 
+You can test how well you're protected for tracking and fingerprinting by using [[https://coveryourtracks.eff.org/https://coveryourtracks.eff.org/][this tool (by Electronic Frontier Foundation)]].
+
 ** Set a common user-agent
 
 #+begin_quote
@@ -1239,13 +1242,155 @@ So while I like the simplicity and isolation of using separate browser profiles,
 
 I don't like to say that, but untile qutebrowser doesn't catch up with the Firefox way to manage containers, the best solution could be using Firefox for some stuff and qutebrowser for other stuff.
 I avoid to be to drastic, because I think I should play with profiles, before choosing a definitive workflow.
+
 * Sharing sessions
 To share my sessions across different machines, I stowed* my =~/.local/share/qutebrowser/sessions/= directory from my Dropbox. I mean I'm using GNU Stow: basically, I'm just symlinking the directory from a cloud. Of course, one could use any cloud (or even git, but I don't like version-controlling such ephemeral data).
 
-* TODO Save as ebook
+* Save as ebook
 I could make an userscript to download as epub/mobi.
 # Readability JS in common lisp could be useful ?
 
 # * TODO Kaomoji
 # * TODO Music management
 # I like listening to lofi youtube playlists and I get frustrated when they go offline, so I would like to download my favorite ones while I listen to them.
+
+* Minimize CPU usage
+Just looking at htop, looks like qutebrowser use more CPU than Firefox (in comparable conditions). It's just a vague and empirical observation, but it wouldn't surprise me if qutebrowser was less optimized than Firefox or other big corporate browsers like Chrome, Edge or other Chromium based one. As Florian points out [[https://github.com/qutebrowser/qutebrowser/issues/5375][in this GitHub issue]], this problem probably lies outside qutebrowses's development domain, since KDE Falcon (another QtWebEngine based browser) shows up similar CPU usage.
+
+What can we do to restrain the extent of this problem?
+
+** Disable JS
+By disabling JS globally and enabling it on demand when strictly needed, we could largely reduce the basal CPU usage *and* minimize fingerprinting too.
+
+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+# Disable JS globally
+# c.content.javascript.enabled = False
+# This is an equivalent form, I re-write in this other form for uniformity's sake in this particular block.
+config.set('content.javascript.enabled', False)
+
+# Enable it on DDG
+config.set('content.javascript.enabled', True, '*://duckduckgo.com/')
+#+end_src
+
+Keybindings:
+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+# javascript enable
+config.bind('<Space>je', ':set content.javascript.enabled true')
+
+# javascript disable
+config.bind('<Space>jd', ':set content.javascript.enabled false')
+#+end_src
+
+* Redirects
+Having JS disabled implies a worst experience on particular frontends.
+# Per minimizzare il nostro bisogno di JS, meglio passare su frontend più leggeri quando possibile.
+
+# Redirect reddit pages to old.reddit pages
+# use qutebrowser apis like this guy https://github.com/Xian-beep/qutebrowser-redirect
+# to map pages, regex are needed
+
+[[https://github.com/qutebrowser/qutebrowser/issues/5476][This problem was already faced by the community]], although there isn't an idiomatic solution.
+
+I think it's fundamental having the redirect to happen *before the page loads*, as it happens in [[https://codeberg.org/mister_monster/qutebrowser-url-mutator][Qutebrowser URL Mutator]].
+Although I like the idea, I would change some small detail in the implementation. For example, I really cannot see the reason why we should load our redirects from a TOML configuration file.
+Why don't we get a python dictionary directly from =config.py=? It's a matter of taste, of course, but I would like to minimize the number of config file that I have to track and share across machines.
+
+So, this is the default TOML example in Qutebrowser URL Mutator.
+
+#+name: toml-url-mutator-default-example
+#+begin_src toml 
+# this is a TOML document [...]
+
+[global]
+
+# [...]
+
+[mutator]
+# mutate youtube URLs to invidious URLs
+[mutator.youtube]
+in_url = '(https?\:\/\/)?.*?youtu.*\..*\/(.*)' # regex pattern of URL to change. this example changes youtube.com, youtu.be, m.youtube.com, with http or https, or no protocol prefix as well.
+out_url = 'https://invidious.fdn.fr/|2|' # when the in_url pattern is found, change it to this.
+ignore_pattern = '' # patterns that match the in_url pattern to ignore. leave empty '' if you don't want to ignore any patterns.
+percent_decode = '' # indexes to parse percent endcoding before building out_url, leave ampty if you don't want to percent decode anything.
+
+# mutate reddit.com URLs to old.reddit.com
+[mutator.reddit]
+in_url = '(https?\:\/\/)?.*?reddit\.com(.*)' # this one changes reddit.com URLs (http or https)
+out_url = 'https://old.reddit.com|2|' # to old.reddit.com.
+ignore_pattern = 'https?\:\/\/out\.reddit\.com.*' # ignore out.reddit.com links, in order to prevent them from being redirected, as reddit tracks all outbound links and so redirecting them will prevent you from opening them.
+percent_decode = '' # indexes to parse percent endcoding before building out_url, leave ampty if you don't want to percent decode anything.
+
+# bypass reddit outboind tracking
+[mutator.outreddit]
+in_url = '(https?\:\/\/)?out\.reddit\.com(.*)url=(.*)\&.*' # this one pulls out the target URL from out.reddit.com URLs
+out_url = '|3|' # the out URL is just the URL out.reddit.com redirects to
+ignore_pattern = ''
+percent_decode = '3' # percent decode the URL so you can actually go to it
+
+# mutate twitter URLs to nitter URLs
+[mutator.twitter]
+in_url = '(https?\:\/\/)?.*?t(witter)?.co.*\/(.*)'
+out_url = 'https://nitter.fdn.fr/|3|'
+ignore_pattern = ''
+percent_decode = '' # indexes to parse percent endcoding before building out_url, leave ampty if you don't want to percent decode anything.
+#+end_src
+
+Apart from the imports, the very first step of the script is writing a function to convert it in a dictionary anyway:
+
+#+begin_src python
+def read_conf(conf_file):
+    conf_file = open(conf_file)
+    conf = toml.loads(conf_file.read())
+    conf_file.close()
+    return conf
+#+end_src
+
+First of all, the TOML library already have a function to interoperate with files directly, like this:
+
+#+begin_src python
+import toml
+
+with open(conf_file, mode="rb") as fp:
+    conf = toml.load(fp)
+#+end_src
+
+I should probably tell this to the author, but it's just a small detail, doesn't really matter.
+
+Since we're in org-mode, we can easily see the final result of the TOML string loading:
+
+#+begin_src python :results output code :noweb no-export :output
+import toml
+import pprint
+
+# It's a hacky use of noweb, but it works
+conf = """
+<<toml-url-mutator-default-example>>
+"""
+
+# Pretty print the dictionary
+pprint.pprint(toml.loads(conf))
+#+end_src
+
+That's it, here we have the actual dictionary processed by the script.
+
+#+begin_src python
+{'global': {},
+ 'mutator': {'outreddit': {'ignore_pattern': '',
+                           'in_url': '(https?\\:\\/\\/)?out\\.reddit\\.com(.*)url=(.*)\\&.*',
+                           'out_url': '|3|',
+                           'percent_decode': '3'},
+             'reddit': {'ignore_pattern': 'https?\\:\\/\\/out\\.reddit\\.com.*',
+                        'in_url': '(https?\\:\\/\\/)?.*?reddit\\.com(.*)',
+                        'out_url': 'https://old.reddit.com|2|',
+                        'percent_decode': ''},
+             'twitter': {'ignore_pattern': '',
+                         'in_url': '(https?\\:\\/\\/)?.*?t(witter)?.co.*\\/(.*)',
+                         'out_url': 'https://nitter.fdn.fr/|3|',
+                         'percent_decode': ''},
+             'youtube': {'ignore_pattern': '',
+                         'in_url': '(https?\\:\\/\\/)?.*?youtu.*\\..*\\/(.*)',
+                         'out_url': 'https://invidious.fdn.fr/|2|',
+                         'percent_decode': ''}}}
+#+end_src
