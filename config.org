@@ -1284,6 +1284,7 @@ config.bind('<Space>jd', ':set content.javascript.enabled false')
 #+end_src
 
 * Redirects
+** Introduction to SwapForQute
 Having JS disabled implies a worst experience on particular frontends.
 # Per minimizzare il nostro bisogno di JS, meglio passare su frontend più leggeri quando possibile.
 
@@ -1291,106 +1292,114 @@ Having JS disabled implies a worst experience on particular frontends.
 # use qutebrowser apis like this guy https://github.com/Xian-beep/qutebrowser-redirect
 # to map pages, regex are needed
 
-[[https://github.com/qutebrowser/qutebrowser/issues/5476][This problem was already faced by the community]], although there isn't an idiomatic solution.
+[[https://github.com/qutebrowser/qutebrowser/issues/5476][This problem is known to the community]], although there isn't an idiomatic solution. I think it's fundamental having the redirect to happen *before the page loads*, as it happens in a lovely userscript, which is [[https://codeberg.org/mister_monster/qutebrowser-url-mutator][Qutebrowser URL Mutator]]. Although I like the idea of Qutebrowser URL Mutator, I chose to not use this it, because some concerns I have. Particularly, I think that regex are good for specific solutions that you solve on place and basically never touch again, but I don't like the idea to have them in a config file, which is usually meant to be read and edited every now and then. I would have preferred an implementation that leverage standard library functions for managing URLs. Usually, this is a better solution to avoid quirky bugs in the long run. So, I decided to write a new userscript myself, with the features I desired. [[https://github.com/gicrisf/qute-url-replacer][Check the repository to learn more about it]].
 
-I think it's fundamental having the redirect to happen *before the page loads*, as it happens in [[https://codeberg.org/mister_monster/qutebrowser-url-mutator][Qutebrowser URL Mutator]].
-Although I like the idea, I would change some small detail in the implementation. For example, I really cannot see the reason why we should load our redirects from a TOML configuration file.
-Why don't we get a python dictionary directly from =config.py=? It's a matter of taste, of course, but I would like to minimize the number of config file that I have to track and share across machines.
+How do we configure it? The userscript essentially gets instruction from a JSON file: you can choose where it should live, but I suggest putting it into a predictable and absolutely boring directory like =~/.config/qutebrowser/url_replacer.json=. But why not YAML? Why not TOML? Because the file isn't thought to be manually written. You can, if you want to, but I think it's better systematically producing it from a python dictionary like the following:
 
-So, this is the default TOML example in Qutebrowser URL Mutator.
+# - Easy to edit configuration;
+# - No regex, because every step is built on standard libraries;
 
-#+name: toml-url-mutator-default-example
-#+begin_src toml 
-# this is a TOML document [...]
-
-[global]
-
-# [...]
-
-[mutator]
-# mutate youtube URLs to invidious URLs
-[mutator.youtube]
-in_url = '(https?\:\/\/)?.*?youtu.*\..*\/(.*)' # regex pattern of URL to change. this example changes youtube.com, youtu.be, m.youtube.com, with http or https, or no protocol prefix as well.
-out_url = 'https://invidious.fdn.fr/|2|' # when the in_url pattern is found, change it to this.
-ignore_pattern = '' # patterns that match the in_url pattern to ignore. leave empty '' if you don't want to ignore any patterns.
-percent_decode = '' # indexes to parse percent endcoding before building out_url, leave ampty if you don't want to percent decode anything.
-
-# mutate reddit.com URLs to old.reddit.com
-[mutator.reddit]
-in_url = '(https?\:\/\/)?.*?reddit\.com(.*)' # this one changes reddit.com URLs (http or https)
-out_url = 'https://old.reddit.com|2|' # to old.reddit.com.
-ignore_pattern = 'https?\:\/\/out\.reddit\.com.*' # ignore out.reddit.com links, in order to prevent them from being redirected, as reddit tracks all outbound links and so redirecting them will prevent you from opening them.
-percent_decode = '' # indexes to parse percent endcoding before building out_url, leave ampty if you don't want to percent decode anything.
-
-# bypass reddit outboind tracking
-[mutator.outreddit]
-in_url = '(https?\:\/\/)?out\.reddit\.com(.*)url=(.*)\&.*' # this one pulls out the target URL from out.reddit.com URLs
-out_url = '|3|' # the out URL is just the URL out.reddit.com redirects to
-ignore_pattern = ''
-percent_decode = '3' # percent decode the URL so you can actually go to it
-
-# mutate twitter URLs to nitter URLs
-[mutator.twitter]
-in_url = '(https?\:\/\/)?.*?t(witter)?.co.*\/(.*)'
-out_url = 'https://nitter.fdn.fr/|3|'
-ignore_pattern = ''
-percent_decode = '' # indexes to parse percent endcoding before building out_url, leave ampty if you don't want to percent decode anything.
-#+end_src
-
-Apart from the imports, the very first step of the script is writing a function to convert it in a dictionary anyway:
+# Moreover, even though I love TOML, I don't want to maintain two (or more) config files across my machines, just for running the browser. It would be better to write our preferences directly in =config.py=. I was thinking about dumping a python dictionary via JSON.
+# Since binding the command to qutebrowser implies string transformations somewhere, this isn't a safe strategy. It's better to load the config from a separate file. Since we're in org-mode, this is pretty easy. Just tangle it in =url_replacer.json=.
 
 #+begin_src python
-def read_conf(conf_file):
-    conf_file = open(conf_file)
-    conf = toml.loads(conf_file.read())
-    conf_file.close()
-    return conf
+url_replacer = {
+    "www.reddit.com" : {
+        "out": "old.reddit.com",
+        "force_https": True,
+        "clean_queries": True
+    },
+    "reddit.com": {
+        "out": "old.reddit.com",
+        "force_https": True,
+        "clean_queries": True
+    },
+}
 #+end_src
 
-First of all, the TOML library already have a function to interoperate with files directly, like this:
+#+begin_quote
+Wait, this is so redundant, this is so awful!
+#+end_quote
 
-#+begin_src python
-import toml
+You could over-complicate a small python dictionary for saving a bunch of kBs or be a free animal.
+If, like me, you cannot resist the urge to be the slave of little silly idyosyncrasies, probably you will immediately see the point of generating the JSON from a Python dictionary.
 
-with open(conf_file, mode="rb") as fp:
-    conf = toml.load(fp)
+#+begin_src python :noweb no-export :results output
+url_replacer = dict()
+url_replacer["www.reddit.com"] = { "out": "old.reddit.com", "force_https": True, "clean_queries": True }
+url_replacer["reddit.com"] = url_replacer["www.reddit.com"]
 #+end_src
 
-I should probably tell this to the author, but it's just a small detail, doesn't really matter.
+Of course this isn't relevant with two redirects only, but it could became relevant with a lot of items.
 
-Since we're in org-mode, we can easily see the final result of the TOML string loading:
+** The actual configuration
+I'll store here after my actual configuration for the swapforqute userscript.
 
-#+begin_src python :results output code :noweb no-export :output
-import toml
-import pprint
+#+name:url-replacer-conf
+#+begin_src python :noweb no-export :results output
+url_replacer = dict()
 
-# It's a hacky use of noweb, but it works
-conf = """
-<<toml-url-mutator-default-example>>
-"""
+url_replacer["www.reddit.com"] = {
+    "out": "old.reddit.com",
+    "force_https": True,
+    "clean_queries": True
+}
 
-# Pretty print the dictionary
-pprint.pprint(toml.loads(conf))
+url_replacer["reddit.com"] = url_replacer["www.reddit.com"]
+
+import json
+print(json.dumps(url_replacer))
 #+end_src
 
-That's it, here we have the actual dictionary processed by the script.
+This is dumped as JSON string, therefore org-mode's noweb can automatically generate the new result and tangling it in the desired directory.
 
-#+begin_src python
-{'global': {},
- 'mutator': {'outreddit': {'ignore_pattern': '',
-                           'in_url': '(https?\\:\\/\\/)?out\\.reddit\\.com(.*)url=(.*)\\&.*',
-                           'out_url': '|3|',
-                           'percent_decode': '3'},
-             'reddit': {'ignore_pattern': 'https?\\:\\/\\/out\\.reddit\\.com.*',
-                        'in_url': '(https?\\:\\/\\/)?.*?reddit\\.com(.*)',
-                        'out_url': 'https://old.reddit.com|2|',
-                        'percent_decode': ''},
-             'twitter': {'ignore_pattern': '',
-                         'in_url': '(https?\\:\\/\\/)?.*?t(witter)?.co.*\\/(.*)',
-                         'out_url': 'https://nitter.fdn.fr/|3|',
-                         'percent_decode': ''},
-             'youtube': {'ignore_pattern': '',
-                         'in_url': '(https?\\:\\/\\/)?.*?youtu.*\\..*\\/(.*)',
-                         'out_url': 'https://invidious.fdn.fr/|2|',
-                         'percent_decode': ''}}}
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/userscripts/swapforqute/config.json
+<<url-replacer-conf()>>
 #+end_src
+
+** Spawn it
+Before doing anything, we must be sure the script can be runned by the system:
+
+# Spiega meglio che devi applicarlo allo script nella sua cartella
+#+begin_src sh
+chmod +x main.py
+#+end_src
+
+Now, we can let qutebrowser trying to spawn it with a command. How this command's made?
+First of all, it will start with =:spawn --userscript=, like every other qutebrowser's userscript.
+
+Then we must give him:
+- The absolute or relative (to the =/userscript= directory) position of the script;
+- =-c=, which is the config argument, with the location of the configuration json.
+
+In pythonic words,
+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+sfq_base_dir = "/home/cromo/.config/qutebrowser/userscripts/swapforqute/"
+sfq_script_path = sfq_base_dir + "main.py"
+sfq_conf_path = sfq_base_dir + "config.json"
+sfq_cmd = "--userscript {} -c {}".format(sfq_script_path, sfq_conf_path)
+#+end_src
+
+This command still lacks an argument:
+- =-u=, which is the URL we need to check and refine;
+
+Of course, while the previous components of the command are statically defined when we launch the browser instance, this argument must be defined each time we open a relevant URL: that's why we're going to left =-u= at the tail.
+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+# Replace URLs on :open
+# config.bind('o', "set-cmd-text -s :spawn {} -u ".format(sfq_cmd))
+# config.bind('O', "set-cmd-text -s :spawn {} -u ".format(sfq_cmd))
+
+# Replace URLs from hints
+config.bind('f', "hint links spawn {} -u ".format(sfq_cmd) + " {hint-url}")
+config.bind('F', "set-cmd-text -s {} -u ".format(sfq_cmd) + " {hint-url}")
+
+# Special command for opening
+# config.bind('<Space>re', "set-cmd-text -s {} -u ".format(sfq_cmd))
+#+end_src
+
+Since *I don't want all URLs to be parsed and filtered* by this script, I don't bind it to =o= and =O=, but you can still read it how it should be made because I left the bindings commented out.
+
+# TODO wordreference userscript!
+# SPCwr è libera!
