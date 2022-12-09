@@ -1283,7 +1283,7 @@ config.bind('<Space>je', ':set content.javascript.enabled true')
 config.bind('<Space>jd', ':set content.javascript.enabled false')
 #+end_src
 
-* Redirects
+* Redirects (SwapForQute)
 ** Introduction to SwapForQute
 Having JS disabled implies a worst experience on particular frontends.
 # Per minimizzare il nostro bisogno di JS, meglio passare su frontend più leggeri quando possibile.
@@ -1292,9 +1292,14 @@ Having JS disabled implies a worst experience on particular frontends.
 # use qutebrowser apis like this guy https://github.com/Xian-beep/qutebrowser-redirect
 # to map pages, regex are needed
 
-[[https://github.com/qutebrowser/qutebrowser/issues/5476][This problem is known to the community]], although there isn't an idiomatic solution. I think it's fundamental having the redirect to happen *before the page loads*, as it happens in a lovely userscript, which is [[https://codeberg.org/mister_monster/qutebrowser-url-mutator][Qutebrowser URL Mutator]]. Although I like the idea of Qutebrowser URL Mutator, I chose to not use this it, because some concerns I have. Particularly, I think that regex are good for specific solutions that you solve on place and basically never touch again, but I don't like the idea to have them in a config file, which is usually meant to be read and edited every now and then. I would have preferred an implementation that leverage standard library functions for managing URLs. Usually, this is a better solution to avoid quirky bugs in the long run. So, I decided to write a new userscript myself, with the features I desired. [[https://github.com/gicrisf/qute-url-replacer][Check the repository to learn more about it]].
+[[https://github.com/qutebrowser/qutebrowser/issues/5476][This problem is known to the community]], although there isn't an idiomatic solution. I think it's fundamental having the redirect to happen *before the page loads*, as it happens in a lovely userscript, which is [[https://codeberg.org/mister_monster/qutebrowser-url-mutator][Qutebrowser URL Mutator]].
 
-How do we configure it? The userscript essentially gets instruction from a JSON file: you can choose where it should live, but I suggest putting it into a predictable and absolutely boring directory like =~/.config/qutebrowser/url_replacer.json=. But why not YAML? Why not TOML? Because the file isn't thought to be manually written. You can, if you want to, but I think it's better systematically producing it from a python dictionary like the following:
+Although I liked the idea of Qutebrowser URL Mutator, in the end I chose to not use it because some concerns I had. Particularly, I thought that regexes are good for specific solutions that you solve on place and basically never touch again, but I didn't like the idea to have them in a config file, which is usually meant to be read and edited every now and then.
+
+I would have preferred an implementation that leverage standard library functions for managing URLs. Usually, this is a better solution to avoid quirky bugs in the long run. So, I decided to write a new userscript myself and that's how SwapForQute was born.
+[[https://github.com/gicrisf/qute-url-replacer][Check the repository to learn more about it]].
+
+How do we configure it? The userscript essentially gets instruction from a JSON file: you can choose where it should live, but I suggest putting it into a predictable and absolutely boring directory like =~/.config/qutebrowser/userscripts/swapforqute/config.json=. But why not YAML? Why not TOML? Because the file isn't thought to be manually written. You can, if you want to, but I think it's better systematically producing it from a python dictionary like the following:
 
 # - Easy to edit configuration;
 # - No regex, because every step is built on standard libraries;
@@ -1357,14 +1362,18 @@ This is dumped as JSON string, therefore org-mode's noweb can automatically gene
 <<url-replacer-conf()>>
 #+end_src
 
-** Spawn it
-Before doing anything, we must be sure the script can be runned by the system:
+** Permissions
+Before doing anything, we must be sure the script has permissions to be runned by the system:
 
 # Spiega meglio che devi applicarlo allo script nella sua cartella
+
+If you installed the script in =~/.config/qutebrowser/userscripts/swapforqute/main.py=, launch
+
 #+begin_src sh
-chmod +x main.py
+chmod +x ~/.config/qutebrowser/userscripts/swapforqute/main.py
 #+end_src
 
+** Building the command
 Now, we can let qutebrowser trying to spawn it with a command. How this command's made?
 First of all, it will start with =:spawn --userscript=, like every other qutebrowser's userscript.
 
@@ -1375,7 +1384,7 @@ Then we must give him:
 In pythonic words,
 
 #+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
-sfq_base_dir = "/home/cromo/.config/qutebrowser/userscripts/swapforqute/"
+sfq_base_dir = "~/.config/qutebrowser/userscripts/swapforqute/"
 sfq_script_path = sfq_base_dir + "main.py"
 sfq_conf_path = sfq_base_dir + "config.json"
 sfq_cmd = "--userscript {} -c {}".format(sfq_script_path, sfq_conf_path)
@@ -1386,14 +1395,30 @@ This command still lacks an argument:
 
 Of course, while the previous components of the command are statically defined when we launch the browser instance, this argument must be defined each time we open a relevant URL: that's why we're going to left =-u= at the tail.
 
+** Alias and keybindings
+It's not feasible to write all the command's clutter everytime.
+Better writing a simple alias like =:sfq=.
+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+c.aliases['sfq'] = "set-cmd-text -s :spawn {} -u ".format(sfq_cmd)
+#+end_src
+
+The obvious next step is setting up the keybindings.
+
+# TODO Devo scrivere lo schemino di come funziona tipo mermaid!
+
 #+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
 # Replace URLs on :open
+# The following are equivalent!
+# We can bind the commands to an alias or directly.
 # config.bind('o', "set-cmd-text -s :spawn {} -u ".format(sfq_cmd))
+# config.bind('o', ':sfq')
+
 # config.bind('O', "set-cmd-text -s :spawn {} -u ".format(sfq_cmd))
 
 # Replace URLs from hints
-config.bind('f', "hint links spawn {} -u ".format(sfq_cmd) + " {hint-url}")
-config.bind('F', "set-cmd-text -s {} -u ".format(sfq_cmd) + " {hint-url}")
+config.bind('f', "hint links spawn {} --cmd 'open' -u ".format(sfq_cmd) + " {hint-url}")
+config.bind('F', "hint links spawn {} --cmd 'open -t' -u ".format(sfq_cmd) + " {hint-url}")
 
 # Special command for opening
 # config.bind('<Space>re', "set-cmd-text -s {} -u ".format(sfq_cmd))
@@ -1403,3 +1428,55 @@ Since *I don't want all URLs to be parsed and filtered* by this script, I don't 
 
 # TODO wordreference userscript!
 # SPCwr è libera!
+
+# TODO fai lo script shell di installazione
+
+** What SFQ do
+
+A diagram.
+
+#+begin_src d2 :file test.png
+# OS
+qute_fifo: QUTE FIFO
+
+qutebrowser: Qutebrowser {
+  cmd: SFQ command
+}
+
+pyenv: Py env {
+  sfq_script: SFQ script
+  sfq_conf: JSON conf. file
+  sfq_conf.shape: document
+
+  sfq_script -> sfq_conf: Read file
+  sfq_conf -> sfq_script: Get dict.
+}
+
+qutebrowser.cmd -> pyenv.sfq_script: Original URL
+pyenv.sfq_script -> qute_fifo: New URL
+qute_fifo -> qutebrowser
+#+end_src
+
+#+RESULTS:
+[[file:test.png]]
+
+#+begin_src d2 :file short.png
+qutebrowser: Qutebrowser {
+  ori_url: "https://www.reddit.com/<...>/?utm_source=<...>"
+  ori_url.style.fill: "#e55f5f"
+  ori_url.shape: parallelogram
+}
+
+sfq: SwapForQute userscript
+
+new_url: "https://old.reddit.com/<...>/"
+new_url.style.fill: "#ACE1AF"
+new_url.shape: parallelogram
+
+qutebrowser.ori_url -> sfq -> new_url -> qutebrowser
+#+end_src
+
+#+RESULTS:
+[[file:short.png]]
+
+Something like "https://www.reddit.com/r/emacs/comments/yubhff/zwitterionic_digressions_get_user_inputs_in_emacs/?utm_source=share&utm_medium=web2x&context=3" magically becames "https://old.reddit.com/r/emacs/comments/yubhff/zwitterionic_digressions_get_user_inputs_in_emacs"
