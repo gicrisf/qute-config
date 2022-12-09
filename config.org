@@ -332,6 +332,13 @@ config.bind('<Space>sd', 'set-cmd-text -s :session-delete')
 
 This way, sessions are easier to inspect, because by using =set-cmd-text= we evoke the "sessions" prompt.
 
+** Wordreference
+Search a word on wordreference (italian - english):
+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+config.bind('<Space>wr', 'set-cmd-text :open https://www.wordreference.com/iten/')
+#+end_src
+
 * Dark mode
 Basically, this inverts color pages.
 
@@ -1479,7 +1486,7 @@ Since *I don't want all URLs to be parsed and filtered* by this script, I don't 
 
 ** What SFQ do
 
-A diagram.
+A d2 diagram.
 
 #+begin_src d2 :file test.png
 # OS
@@ -1503,8 +1510,7 @@ pyenv.sfq_script -> qute_fifo: New URL
 qute_fifo -> qutebrowser
 #+end_src
 
-#+RESULTS:
-[[file:test.png]]
+Another, simpler, d2 diagram.
 
 #+begin_src d2 :file short.png
 qutebrowser: Qutebrowser {
@@ -1521,8 +1527,5 @@ new_url.shape: parallelogram
 
 qutebrowser.ori_url -> sfq -> new_url -> qutebrowser
 #+end_src
-
-#+RESULTS:
-[[file:short.png]]
 
 Something like "https://www.reddit.com/r/emacs/comments/yubhff/zwitterionic_digressions_get_user_inputs_in_emacs/?utm_source=share&utm_medium=web2x&context=3" magically becames "https://old.reddit.com/r/emacs/comments/yubhff/zwitterionic_digressions_get_user_inputs_in_emacs"
