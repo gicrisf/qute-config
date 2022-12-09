@@ -6,7 +6,7 @@
 #+export_file_name: index.en.md
 #+hugo_tags: vim qt python
 #+hugo_categories: software
-#+STARTUP: show2levels
+#+STARTUP: overview
 #+MACRO: more @@html:<!-- more -->@@
 
 #+begin_quote
@@ -250,6 +250,52 @@ config.bind('<Space>t', 'set-cmd-text -sr :tab-focus')
 #+end_src
 
 I'll keep adding Space keychains in other section of this file too.
+
+*** Safer reload page
+Having the =reload= command simply binded to =r= is dangerous, because if you forgot being in normal mode while you're writing, just by typing 'r' you risk losing all your progress in that page. Maybe you wrote a lot of text in a textarea and "whoosh", everything's gone. Yeah, it sadly happened to me. What's the solution? Once again, I think it's *space*.
+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+config.unbind('r')
+config.bind('<Space>rr', 'reload')
+#+end_src
+
+*** Quickly open the config file
+Traditionally, qutebrowser search for gvim for opening =config.py=.
+That's pretty inflexible, doesn't it?
+
+To learn how can we change its behaviour, let's see how this works.
+For opening the editor, Qutebrowser is launching the =config_edit()= function under the hood (from =qutebrowser/config/configcommands.py=):
+
+#+begin_src python
+@cmdutils.register(instance='config-commands')
+    def config_edit(self, no_source: bool = False) -> None:
+        """Open the config.py file in the editor.
+        Args:
+            no_source: Don't re-source the config file after editing.
+        """
+        def on_file_updated() -> None:
+            """Source the new config when editing finished.
+            This can't use cmdutils.CommandError as it's run async.
+            """
+            try:
+                configfiles.read_config_py(filename)
+            except configexc.ConfigFileErrors as e:
+                message.error(str(e))
+
+        ed = editor.ExternalEditor(watch=True, parent=self._config)
+        if not no_source:
+            ed.file_updated.connect(on_file_updated)
+
+        filename = standarddir.config_py() # <-- THE FILENAME IS HARDCODED!
+        ed.edit_file(filename)
+#+end_src
+
+Since the filename is hardcoded, I think it's better to get a totally different path for reaching this goal. I think it would be pretty out of scope to make a PR for reloading config for an org-mode literate configuration which should be tangled before being reloaded. Feels like a "slightly" niche case.
+
+#+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
+# TODO Writing an userscript to bind here!
+# config.bind('<Space>oc', '')
+#+end_src
 
 ** Vim-like navigation in command mode
 #+begin_src python :noweb no-export :tangle ~/.config/qutebrowser/config.py
